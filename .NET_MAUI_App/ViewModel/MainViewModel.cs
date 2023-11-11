@@ -7,55 +7,65 @@ namespace MauiApp1.ViewModel
 {
     public partial class MainViewModel : ObservableObject
     {
+        public string name { get; set; }
+        public string date { get; set; }
+        public double amount { get; set; }
 
+        [ObservableProperty]
+        public string total;
         public MainViewModel() 
         {
+            Label totalLabel = new Label();
+            totalLabel.BindingContext = this;
+            totalLabel.SetBinding(Label.TextProperty, nameof(Total));
             ReloadFromServer();
         }
+     
         public void ReloadFromServer()
         {
             List<InvoiceLine> currentItems = myRESTAPI.Get();
             int size = currentItems.Count;
-            ObservableCollection<string> collection = new ObservableCollection<string>();
+            double sumTotal = 0;
+            ObservableCollection<InvoiceLine> invoiceCollection = new ObservableCollection<InvoiceLine>();
             foreach (InvoiceLine item in currentItems)
             {
-                collection.Add(item.name);
+                sumTotal += item.amount;
+                invoiceCollection.Add(item);
             }
 
-            Items = collection;
+            Total = "£ " + sumTotal.ToString();
+            Items = invoiceCollection;
+            OnPropertyChanged(nameof(Total));
+            OnPropertyChanged(nameof(Items));
         }
         [ObservableProperty]
-        ObservableCollection<string>   _items;
+        ObservableCollection<InvoiceLine>   _items;
 
         [ObservableProperty]
         string text;
 
         [RelayCommand]
-        void Add()
+        void FilterByDate()
         {
-           
+
             if (string.IsNullOrEmpty(Text))
             {
-                return;
+                ReloadFromServer(); //does not refresh
             }
-            if(myRESTAPI.success==false)
-                ReloadFromServer();
 
-            Items.Add(Text);
-            List<InvoiceLine> currentItemsTask = myRESTAPI.Get();
-            List<InvoiceLine> currentItems = currentItemsTask;
-            int size = currentItems.Count;
-            myRESTAPI.Post(size + 1, Text);
+            var filteredItems = Items.Where(e => e.date == Text);
+            double sumTotal = 0;
+            ObservableCollection<InvoiceLine> invoiceCollection = new ObservableCollection<InvoiceLine>();
+            foreach (InvoiceLine item in filteredItems)
+            {
+                sumTotal += item.amount;
+                invoiceCollection.Add(item);
+            }
+            Items = invoiceCollection;
+            Total = "£ " + sumTotal.ToString();
+            OnPropertyChanged(nameof(Total));
+            OnPropertyChanged(nameof(Items));
             Text = string.Empty;
-        }
-
-        [RelayCommand]
-        void Delete(string s)
-        {
-            if(Items.Contains(s)) { Items.Remove(s); }
-            List <InvoiceLine> currentItems = myRESTAPI.Get();
-            int? id = currentItems.Where(a => a.name == s).FirstOrDefault().id;
-            myRESTAPI.delete((int)id);
         }
 
     }
