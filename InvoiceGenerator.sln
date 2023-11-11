@@ -5,6 +5,10 @@ VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApplication", "WebApplication\WebApplication.csproj", "{CC59C49D-F51D-48FA-B6FA-944D87A7E49B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = ".NET_MAUI_APP", ".NET_MAUI_App\.NET_MAUI_APP.csproj", "{3FF99516-A1BA-4BF6-89F3-556B5DB1DDAC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "C#REST", "C#REST\C#REST.csproj", "{FCF28B94-BFFD-44F1-92DB-D3DFBDC045A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,16 @@ Global
 		{CC59C49D-F51D-48FA-B6FA-944D87A7E49B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC59C49D-F51D-48FA-B6FA-944D87A7E49B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC59C49D-F51D-48FA-B6FA-944D87A7E49B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FF99516-A1BA-4BF6-89F3-556B5DB1DDAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FF99516-A1BA-4BF6-89F3-556B5DB1DDAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FF99516-A1BA-4BF6-89F3-556B5DB1DDAC}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{3FF99516-A1BA-4BF6-89F3-556B5DB1DDAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FF99516-A1BA-4BF6-89F3-556B5DB1DDAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FF99516-A1BA-4BF6-89F3-556B5DB1DDAC}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{FCF28B94-BFFD-44F1-92DB-D3DFBDC045A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCF28B94-BFFD-44F1-92DB-D3DFBDC045A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCF28B94-BFFD-44F1-92DB-D3DFBDC045A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCF28B94-BFFD-44F1-92DB-D3DFBDC045A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

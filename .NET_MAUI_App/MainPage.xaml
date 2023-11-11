@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiApp1.MainPage"
+             xmlns:viewmodel="clr-namespace:MauiApp1.ViewModel"
+             x:DataType="viewmodel:MainViewModel">
+
+    <Grid RowDefinitions="50,Auto,*"
+          ColumnDefinitions=".5*,.5*"
+          Padding="0"
+          RowSpacing="0"
+          ColumnSpacing="10">
+        
+        <Label Grid.ColumnSpan="1"
+            Text="Total Income "
+            FontSize="20"
+            BackgroundColor="Transparent"
+            Grid.Row="0"
+            Grid.Column="0">
+        </Label>
+
+        <Button Text="Filter By Date"
+                Command="{Binding FilterByDateCommand}"
+                Grid.Row="1"
+                Grid.Column="1"/>
+
+        <Label Grid.ColumnSpan="1"
+            Text="{Binding Total}"
+            FontSize="20"
+            BackgroundColor="Transparent"
+            Grid.Row="0"
+            Grid.Column="1">
+        </Label>
+        
+        <Entry Placeholder="Enter Item"
+               Text="{Binding Text}"
+               Grid.Row="1"/>
+
+        <CollectionView Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{Binding Items}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="0,1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width=".5*" />
+                                <ColumnDefinition Width=".3*" />
+                                   <ColumnDefinition Width=".2*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Label Text="{Binding name}"
+                                   FontSize="15"
+                                   Grid.Column="0"/>
+                        <Label Text="{Binding date}"
+                                    FontSize="15"
+                                    Grid.Column="1"/>
+                        <Label Text="{Binding amount}"
+                                    FontSize="15"
+                                     Grid.Column="2"/>
+                    </Grid>
+        
+                    <!--</SwipeView>-->
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!--<TableView Grid.Row="3" Grid.ColumnSpan="2">
+            <TableRoot>
+                <TableSection Title="Learn how to use your XBox">
+                    <ImageCell Text="1. Introduction"
+                       Detail="Learn about your XBox and its capabilities."
+                       ImageSource="xbox.png" />
+                    <ImageCell Text="2. Turn it on"
+                       Detail="Learn how to turn on your XBox."
+                       ImageSource="xbox.png" />
+                    <ImageCell Text="3. Connect your controller"
+                       Detail="Learn how to connect your wireless controller."
+                       ImageSource="xbox.png" />
+                    <ImageCell Text="4. Launch a game"
+                       Detail="Learn how to launch a game."
+                       ImageSource="xbox.png" />
+                </TableSection>
+            </TableRoot>
+        </TableView>-->
+
+
+
+    </Grid>
+
+</ContentPage>
