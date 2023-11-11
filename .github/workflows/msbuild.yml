@@ -3,9 +3,9 @@ name: MSBuild
 on: 
   # Triggers the workflow on push or pull request events but only for the main branch
    push:
-    branches: [ INGE-5_GitHub_Build ]
+    branches: [ Sprint1_InitialFramework ]
    pull_request:
-    branches: [ INGE-5_GitHub_Build ]
+    branches: [ Sprint1_InitialFramework ]
 
 env:
   # Path to the solution file relative to the root of the project.
