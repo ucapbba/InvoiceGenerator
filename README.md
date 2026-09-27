@@ -1,5 +1,4 @@
 # InvoiceGenerator
-WebApplication - VS ASP.NET with web page and REST API endpoints in Swagger
- - web page https://invoicegeneratorbea.azurewebsites.net/#/Home
- - enpoints https://invoicegeneratorbea.azurewebsites.net/swagger/index.html
-InvoiceGeneratorSample.xlsm - Excel VBA project that uploads data through REST calls to WebApplication endpoints
+
+Phone-friendly web app for generating client invoices (PDF) and email drafts.
+Replaces the earlier Excel VBA generator and ASP.NET prototype.
