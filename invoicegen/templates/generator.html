@@ -62,13 +62,14 @@
   {% if invoices %}
   <table class="sheet invoices">
     <thead>
-      <tr><th>Name</th><th>Invoice ID</th><th>Type</th><th>Total</th><th></th></tr>
+      <tr><th>Name</th><th>Invoice ID</th><th>Client</th><th>Type</th><th>Total</th><th></th></tr>
     </thead>
     <tbody>
       {% for inv in invoices %}
       <tr>
-        <td data-label="Name"><strong>{{ inv.client }}</strong></td>
+        <td data-label="Name"><strong>{{ inv.sheet_name }}</strong></td>
         <td data-label="Invoice ID">{{ inv.invoice_id }}</td>
+        <td data-label="Client">{{ inv.client }}</td>
         <td data-label="Type">{{ inv.type }}</td>
         <td data-label="Total" class="num">{{ inv.total_display }}</td>
         <td class="row-actions">

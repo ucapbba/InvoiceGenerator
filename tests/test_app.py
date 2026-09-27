@@ -78,7 +78,7 @@ def test_generate_export_and_clear(logged_in):
     page = logged_in.get("/").get_data(as_text=True)
     assert "Generated 6 invoices" in page
     assert "10-2026-001" in page and "10-2026-006" in page
-    assert "<strong>Mr D Smith</strong>" in page  # full name, not the Smith1 sheet name
+    assert "<strong>Smith1</strong>" in page
     assert page.count(">Email</a>") == 4  # Units with an email address
     assert "Houses aren't emailed" in page
 
