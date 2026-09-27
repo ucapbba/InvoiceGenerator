@@ -13,7 +13,7 @@ from . import create_app
 
 def main():
     host = os.environ.get("INVOICEGEN_HOST", "127.0.0.1")
-    port = int(os.environ.get("INVOICEGEN_PORT", "8000"))
+    port = int(os.environ.get("INVOICEGEN_PORT", "8100"))
     print(f"Invoice Generator on http://{host}:{port}", flush=True)
     serve(create_app(), host=host, port=port, threads=4)
 

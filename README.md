@@ -23,7 +23,7 @@ too; see [Company details](#company-details).
 ./run.sh
 ```
 
-It listens on `http://127.0.0.1:8000` only, so it can't be reached from the network directly.
+It listens on `http://127.0.0.1:8100` only, so it can't be reached from the network directly.
 Put it on the internet through a Cloudflare Tunnel (below), which also provides HTTPS.
 
 ### Director logins
@@ -73,7 +73,7 @@ With `cloudflared` installed on the machine running the app:
 cloudflared tunnel login
 cloudflared tunnel create invoices
 cloudflared tunnel route dns invoices invoices.your-domain.co.uk
-cloudflared tunnel run --url http://127.0.0.1:8000 invoices
+cloudflared tunnel run --url http://127.0.0.1:8100 invoices
 ```
 
 For an extra layer, add a Cloudflare Access policy for that hostname that only lets the
