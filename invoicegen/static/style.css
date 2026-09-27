@@ -45,7 +45,6 @@ button.primary { background: var(--primary); border-color: var(--primary); color
 button.danger { color: var(--danger); border-color: #e7b7b3; }
 .small { min-height: 34px; padding: 5px 10px; font-size: .85rem; }
 .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.buttons form { display: contents; }
 
 .settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
 .next-id { margin: 0 0 8px; }

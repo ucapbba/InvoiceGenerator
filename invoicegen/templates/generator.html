@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<form method="post" action="{{ url_for('views.sheet') }}">
+<form method="post" action="{{ url_for('views.sheet') }}" id="sheet">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {# Pressing Enter in a field uses the first button in the form, so make that Save. #}
   <button name="action" value="save" class="visually-hidden" tabindex="-1" aria-hidden="true">Save</button>
@@ -14,7 +14,7 @@
       <label>Next invoice no.
         <input type="number" name="next_number" min="1" step="1" value="{{ settings.next_number }}" required>
       </label>
-      <p class="next-id">Next invoice ID: <strong>{{ next_id }}</strong></p>
+      <p class="next-id">Next invoice ID: <strong id="next-id">{{ next_id }}</strong></p>
     </div>
   </section>
 
@@ -75,12 +75,9 @@
         <td class="row-actions">
           <a class="button small" href="{{ url_for('views.invoice_pdf', invoice_pk=inv.id) }}" target="_blank" rel="noopener">PDF</a>
           {% if inv.email_ok %}
-          <button type="button" class="small js-email"
-                  data-pdf="{{ url_for('views.invoice_pdf', invoice_pk=inv.id) }}"
-                  data-filename="{{ inv.sheet_name }}.pdf"
-                  data-to="{{ inv.email }}"
-                  data-subject="{{ inv.subject }}"
-                  data-body="{{ inv.body }}">Email</button>
+          <a class="button small js-email" href="{{ inv.mailto }}"
+             data-pdf="{{ url_for('views.invoice_pdf', invoice_pk=inv.id, download=1) }}"
+             data-filename="{{ inv.sheet_name }}.pdf">Email</a>
           {% elif inv.type == "House" %}
           <span class="muted small">Houses aren't emailed</span>
           {% else %}
@@ -96,10 +93,9 @@
   {% endif %}
   <div class="buttons">
     {% if invoices %}<a class="button" href="{{ url_for('views.export') }}">Export all PDFs (zip)</a>{% endif %}
-    <form method="post" action="{{ url_for('views.clear') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button class="danger" data-confirm="Delete all generated invoices and restart numbering at 001?">Clear invoices</button>
-    </form>
+    {# Part of the Generator form (form="sheet"), so edits to the date and number are saved too. #}
+    <button form="sheet" name="action" value="clear" class="danger"
+            data-confirm="Delete all generated invoices? The invoice number is kept.">Clear invoices</button>
   </div>
 </section>
 {% endblock %}

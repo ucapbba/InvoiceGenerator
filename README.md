@@ -7,12 +7,12 @@ It works like the spreadsheet:
 | Spreadsheet | Web app |
 |---|---|
 | Generator sheet (Name, Amount, Property Name, Address, Type, Email, Count) | **Clients** table |
-| B2 Invoice ID, B3 Date | **Next invoice no.** and **Invoice date** |
+| B2 Invoice ID, B3 Date | **Next invoice no.** and **Invoice date**: remembered, and the number goes up with each invoice generated |
 | Generate button | **Generate invoices**: one invoice per row (Smith, Smith1... for repeated surnames) |
 | Invoice Template Units / Houses | PDF with the same layout; Units add 20% VAT, Houses don't |
 | Export button | **PDF** on each invoice, or **Export all PDFs (zip)** |
-| Send Email button | **Email** on each Unit invoice with an email address: opens the phone's share menu, where you pick Outlook |
-| Clear Invoices button | **Clear invoices**: removes generated invoices, numbering restarts at 001 |
+| Send Email button | **Email** on each Unit invoice with an email address: opens your email app with the address, subject and message filled in, and downloads the PDF to attach |
+| Clear Invoices button | **Clear invoices**: removes generated invoices; the invoice number carries on |
 
 The app starts with made-up sample clients. Company details on the invoice are placeholders
 too; see [Company details](#company-details).

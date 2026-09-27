@@ -5,7 +5,7 @@ function toast(message) {
   el.textContent = message;
   el.hidden = false;
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => { el.hidden = true; }, 4000);
+  toast.timer = setTimeout(() => { el.hidden = true; }, 5000);
 }
 
 // Ask before destructive buttons (Delete row, Clear invoices).
@@ -14,55 +14,34 @@ document.addEventListener("click", (event) => {
   if (button && !confirm(button.dataset.confirm)) event.preventDefault();
 });
 
-// Email buttons: hand the invoice PDF to the phone's mail app (e.g. Outlook) via the share menu.
-// The PDFs are fetched when the page loads, because phones only allow sharing straight after a tap.
-const readyFiles = new Map();
-
-function prepare(button) {
-  fetch(button.dataset.pdf, { credentials: "same-origin" })
-    .then((response) => {
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return response.blob();
-    })
-    .then((blob) => {
-      readyFiles.set(button, new File([blob], button.dataset.filename, { type: "application/pdf" }));
-    })
-    .catch(() => { button.dataset.failed = "1"; });
-}
-
-function emailInvoice(button) {
-  const { to, subject, body, filename } = button.dataset;
-  const file = readyFiles.get(button);
-
-  if (navigator.canShare && !file && !button.dataset.failed) {
-    toast("Still preparing the PDF - tap again in a moment.");
-    return;
-  }
-
-  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-    // Mail apps don't take a recipient from the share menu, so put it on the clipboard to paste.
-    navigator.clipboard?.writeText(to).catch(() => {});
-    navigator.share({ files: [file], title: subject, text: body }).catch((err) => {
-      if (err.name !== "AbortError") toast(`Couldn't share: ${err.message}`);
-    });
-    toast(`Choose Outlook. ${to} is copied - paste it into To.`);
-    return;
-  }
-
-  // No share menu (most desktop browsers): download the PDF and open a pre-filled email to attach it to.
-  const link = document.createElement("a");
-  link.href = `${button.dataset.pdf}?download=1`;
-  link.download = filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => {
-    window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }, 500);
-  toast("PDF downloaded - attach it to the email.");
-}
-
-document.querySelectorAll(".js-email").forEach((button) => {
-  prepare(button);
-  button.addEventListener("click", () => emailInvoice(button));
+// Email links open the email app with the address, subject and message filled in.
+// Email links can't carry attachments, so download the PDF at the same time to attach.
+document.querySelectorAll(".js-email").forEach((link) => {
+  link.addEventListener("click", () => {
+    const download = document.createElement("a");
+    download.href = link.dataset.pdf;
+    download.download = link.dataset.filename;
+    document.body.append(download);
+    download.click();
+    download.remove();
+    toast(`${link.dataset.filename} downloaded - attach it to the email.`);
+  });
 });
+
+// Show the next invoice ID as the date or number is typed (same format as the server: 10-2026-001).
+const dateInput = document.querySelector("input[name=invoice_date]");
+const numberInput = document.querySelector("input[name=next_number]");
+const nextId = document.getElementById("next-id");
+
+function updateNextId() {
+  const [year, month] = dateInput.value.split("-").map(Number);
+  const number = parseInt(numberInput.value, 10);
+  if (year && month && number >= 1) {
+    nextId.textContent = `${month}-${year}-${String(number).padStart(3, "0")}`;
+  }
+}
+
+if (dateInput && numberInput && nextId) {
+  dateInput.addEventListener("input", updateNextId);
+  numberInput.addEventListener("input", updateNextId);
+}

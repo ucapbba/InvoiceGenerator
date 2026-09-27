@@ -10,7 +10,7 @@ def test_pages_need_login(client):
     for url in ("/", "/export.zip", "/invoices/1.pdf"):
         response = client.get(url)
         assert response.status_code == 302 and response.location.endswith("/login")
-    assert client.post("/clear").status_code == 400  # no CSRF token without a session
+    assert client.post("/sheet").status_code == 400  # no CSRF token without a session
 
 
 def test_login_and_logout(client):
@@ -35,8 +35,8 @@ def test_account_locks_after_repeated_failures(client):
 
 
 def test_post_without_csrf_token_is_rejected(logged_in):
-    assert logged_in.post("/clear").status_code == 400
-    assert logged_in.post("/clear", data={"csrf_token": "forged"}).status_code == 400
+    assert logged_in.post("/sheet", data={"action": "clear"}).status_code == 400
+    assert logged_in.post("/sheet", data={"action": "clear", "csrf_token": "forged"}).status_code == 400
 
 
 def test_deleted_user_is_signed_out(app, logged_in):
@@ -77,7 +77,8 @@ def test_generate_export_and_clear(logged_in):
     assert "Generated 6 invoices" in page
     assert "10-2026-001" in page and "10-2026-006" in page
     assert "Smith1" in page
-    assert 'data-to="a.sample@example.com"' in page  # Unit with email gets an Email button
+    # Unit with email gets an Email link that opens the email app with address and subject.
+    assert 'href="mailto:a.sample@example.com?subject=Invoice%2010-2026-001&amp;body=Dear%20Ms%20A%20Sample' in page
     assert "Houses aren't emailed" in page
 
     # Generating again without clearing is refused, as in the spreadsheet.
@@ -91,10 +92,10 @@ def test_generate_export_and_clear(logged_in):
     assert sorted(archive.namelist()) == sorted(
         ["Sample.pdf", "Example.pdf", "Smith.pdf", "Smith1.pdf", "Placeholder.pdf", "Tenant.pdf"])
 
-    logged_in.post("/clear", data={"csrf_token": csrf_from(logged_in.get("/"))})
+    logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "clear"})
     page = logged_in.get("/").get_data(as_text=True)
     assert "No invoices generated yet" in page
-    assert "Next invoice ID: <strong>10-2026-001</strong>" in page
+    assert 'Next invoice ID: <strong id="next-id">10-2026-007</strong>' in page  # numbering carries on
 
 
 def test_generate_reports_bad_rows_and_creates_nothing(logged_in):
@@ -104,3 +105,20 @@ def test_generate_reports_bad_rows_and_creates_nothing(logged_in):
     page = logged_in.get("/").get_data(as_text=True)
     assert "Row 2 (Mr B Example): amount &#39;lots&#39; is not a number" in page
     assert "No invoices generated yet" in page
+
+
+def test_invoice_number_is_remembered_and_increments(logged_in):
+    form = sheet_form(logged_in)
+    logged_in.post("/sheet", data={**form, "next_number": "42", "action": "save"})
+    assert sheet_form(logged_in)["next_number"] == "42"
+
+    logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
+    page = logged_in.get("/").get_data(as_text=True)
+    assert "10-2026-042" in page and "10-2026-047" in page
+    assert sheet_form(logged_in)["next_number"] == "48"
+
+
+def test_clear_saves_a_typed_number(logged_in):
+    logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
+    logged_in.post("/sheet", data={**sheet_form(logged_in), "next_number": "100", "action": "clear"})
+    assert sheet_form(logged_in)["next_number"] == "100"

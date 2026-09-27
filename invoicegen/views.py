@@ -43,8 +43,7 @@ def generator_page():
         inv = dict(row)
         inv["total_display"] = generator.money(inv["total"])
         inv["email_ok"] = generator.can_email(inv)
-        inv["subject"] = generator.email_subject(inv)
-        inv["body"] = generator.email_body(inv, company)
+        inv["mailto"] = generator.mailto_link(inv, company)
         invoices.append(inv)
     return render_template(
         "generator.html",
@@ -115,6 +114,13 @@ def _generate(db):
     return True
 
 
+def _clear(db):
+    """Clear Invoices: delete generated invoices. The next invoice number is kept."""
+    db.execute("DELETE FROM invoices")
+    db.execute("UPDATE clients SET count = NULL")
+    flash("Invoices cleared.", "success")
+
+
 @bp.post("/sheet")
 def sheet():
     """Every button on the Generator form saves the sheet first, then does its action."""
@@ -138,22 +144,14 @@ def sheet():
     elif action == "generate":
         if _generate(db):
             anchor = "invoices"
+    elif action == "clear":
+        _clear(db)
+        anchor = "invoices"
     else:
         flash("Saved.", "success")
     db.commit()
     return redirect(url_for("views.generator", _anchor=anchor))
 
-
-@bp.post("/clear")
-def clear():
-    """Clear Invoices: delete generated invoices and restart numbering at 001."""
-    db = get_db()
-    db.execute("DELETE FROM invoices")
-    db.execute("UPDATE clients SET count = NULL")
-    set_setting(db, "next_number", 1)
-    db.commit()
-    flash("Invoices cleared. Numbering restarts at 001.", "success")
-    return redirect(url_for("views.generator"))
 
 
 @bp.get("/invoices/<int:invoice_pk>.pdf")
