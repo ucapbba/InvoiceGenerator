@@ -19,6 +19,8 @@ DEFAULT_COMPANY = {
     ],
     "correspondence_heading": "Please send any written correspondence including cheques to:",
     "correspondence": "1 Example Road, Anytown, Countyshire AB1 2CD",
+    # Copied in on every email draft (the VBA CC'd the company address). Empty for none.
+    "email_cc": "",
 }
 
 

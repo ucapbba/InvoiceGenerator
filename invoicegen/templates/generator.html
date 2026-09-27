@@ -75,9 +75,8 @@
         <td class="row-actions">
           <a class="button small" href="{{ url_for('views.invoice_pdf', invoice_pk=inv.id) }}" target="_blank" rel="noopener">PDF</a>
           {% if inv.email_ok %}
-          <a class="button small js-email" href="{{ inv.mailto }}"
-             data-pdf="{{ url_for('views.invoice_pdf', invoice_pk=inv.id, download=1) }}"
-             data-filename="{{ inv.sheet_name }}.pdf">Email</a>
+          <a class="button small" href="{{ url_for('views.invoice_draft', invoice_pk=inv.id) }}"
+             title="Download an Outlook draft with the PDF attached">Email</a>
           {% elif inv.type == "House" %}
           <span class="muted small">Houses aren't emailed</span>
           {% else %}
@@ -93,6 +92,7 @@
   {% endif %}
   <div class="buttons">
     {% if invoices %}<a class="button" href="{{ url_for('views.export') }}">Export all PDFs (zip)</a>{% endif %}
+    {% if any_email %}<a class="button" href="{{ url_for('views.drafts') }}">All email drafts (zip)</a>{% endif %}
     {# Part of the Generator form (form="sheet"), so edits to the date and number are saved too. #}
     <button form="sheet" name="action" value="clear" class="danger"
             data-confirm="Delete all generated invoices? The invoice number is kept.">Clear invoices</button>

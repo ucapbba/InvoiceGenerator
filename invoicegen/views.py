@@ -1,4 +1,4 @@
-"""The Generator page and its buttons: Save, Add row, Generate, Clear invoices, PDF, Export."""
+"""The Generator page and its buttons: Save, Add row, Generate, Clear invoices, PDF, Email, Export."""
 
 import zipfile
 from datetime import date
@@ -8,6 +8,7 @@ from flask import Blueprint, current_app, flash, g, redirect, render_template, r
 
 from . import generator
 from .db import get_db, get_settings, set_setting
+from .drafts import build_draft, draft_filename
 from .pdf import render_invoice
 
 MAX_ROWS = 200
@@ -37,13 +38,11 @@ def _invoice(db, invoice_pk):
 def generator_page():
     db = get_db()
     settings = get_settings(db)
-    company = current_app.config["COMPANY"]
     invoices = []
     for row in db.execute("SELECT * FROM invoices ORDER BY id"):
         inv = dict(row)
         inv["total_display"] = generator.money(inv["total"])
         inv["email_ok"] = generator.can_email(inv)
-        inv["mailto"] = generator.mailto_link(inv, company)
         invoices.append(inv)
     return render_template(
         "generator.html",
@@ -51,6 +50,7 @@ def generator_page():
         next_id=generator.invoice_id(date.fromisoformat(settings["invoice_date"]), int(settings["next_number"])),
         clients=_clients(db),
         invoices=invoices,
+        any_email=any(inv["email_ok"] for inv in invoices),
         types=generator.TYPES,
     )
 
@@ -162,6 +162,39 @@ def invoice_pdf(invoice_pk):
     pdf = render_invoice(dict(inv), current_app.config["COMPANY"])
     return send_file(BytesIO(pdf), mimetype="application/pdf", download_name=f"{inv['sheet_name']}.pdf",
                      as_attachment=request.args.get("download") == "1")
+
+
+def _draft(inv) -> bytes:
+    company = current_app.config["COMPANY"]
+    return build_draft(inv, company, render_invoice(inv, company))
+
+
+@bp.get("/invoices/<int:invoice_pk>.eml")
+def invoice_draft(invoice_pk):
+    """Email: an Outlook draft with the address, subject, message and PDF attached."""
+    inv = _invoice(get_db(), invoice_pk)
+    if inv is None or not generator.can_email(inv):
+        if inv is not None:
+            flash(f"{inv['sheet_name']} isn't emailed (Houses and rows without an email address are skipped).", "error")
+        return redirect(url_for("views.generator"))
+    return send_file(BytesIO(_draft(dict(inv))), mimetype="message/rfc822", as_attachment=True,
+                     download_name=draft_filename(inv))
+
+
+@bp.get("/drafts.zip")
+def drafts():
+    """Send Email: every emailable invoice as an Outlook draft, in one zip."""
+    rows = [dict(r) for r in get_db().execute("SELECT * FROM invoices ORDER BY id") if generator.can_email(r)]
+    if not rows:
+        flash("There are no invoices to email.", "error")
+        return redirect(url_for("views.generator"))
+    buf = BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for inv in rows:
+            zf.writestr(draft_filename(inv), _draft(inv))
+    buf.seek(0)
+    return send_file(buf, mimetype="application/zip", as_attachment=True,
+                     download_name=f"email-drafts-{rows[0]['invoice_date']}.zip")
 
 
 @bp.get("/export.zip")

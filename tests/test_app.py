@@ -1,5 +1,7 @@
+import email
 import io
 import zipfile
+from email import policy
 
 from conftest import csrf_from, log_in, sheet_form
 from invoicegen.auth import MAX_FAILED_LOGINS
@@ -77,8 +79,7 @@ def test_generate_export_and_clear(logged_in):
     assert "Generated 6 invoices" in page
     assert "10-2026-001" in page and "10-2026-006" in page
     assert "Smith1" in page
-    # Unit with email gets an Email link that opens the email app with address and subject.
-    assert 'href="mailto:a.sample@example.com?subject=Invoice%2010-2026-001&amp;body=Dear%20Ms%20A%20Sample' in page
+    assert page.count(">Email</a>") == 4  # Units with an email address
     assert "Houses aren't emailed" in page
 
     # Generating again without clearing is refused, as in the spreadsheet.
@@ -122,3 +123,32 @@ def test_clear_saves_a_typed_number(logged_in):
     logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
     logged_in.post("/sheet", data={**sheet_form(logged_in), "next_number": "100", "action": "clear"})
     assert sheet_form(logged_in)["next_number"] == "100"
+
+
+def test_email_is_an_outlook_draft_with_the_pdf_attached(logged_in):
+    logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
+    response = logged_in.get("/invoices/1.eml")
+    assert response.mimetype == "message/rfc822"
+    assert "Sample_10-2026-001.eml" in response.headers["Content-Disposition"]
+
+    msg = email.message_from_bytes(response.data, policy=policy.default)
+    assert msg["To"] == "a.sample@example.com"
+    assert msg["Subject"] == "Invoice 10-2026-001"
+    assert msg["X-Unsent"] == "1"  # Outlook opens it as a draft
+    assert "Attached is your invoice 10-2026-001 for Example Farm Unit 1." in msg.get_body(("plain",)).get_content()
+    [attachment] = list(msg.iter_attachments())
+    assert attachment.get_filename() == "Sample.pdf"
+    assert attachment.get_content().startswith(b"%PDF")
+
+
+def test_houses_and_rows_without_email_get_no_draft(logged_in):
+    logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
+    assert logged_in.get("/invoices/4.eml").status_code == 302  # Mr D Smith, no email address
+    assert logged_in.get("/invoices/6.eml").status_code == 302  # House
+
+
+def test_all_drafts_zip(logged_in):
+    logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
+    archive = zipfile.ZipFile(io.BytesIO(logged_in.get("/drafts.zip").data))
+    assert sorted(archive.namelist()) == sorted(
+        ["Sample_10-2026-001.eml", "Example_10-2026-002.eml", "Smith_10-2026-003.eml", "Placeholder_10-2026-005.eml"])

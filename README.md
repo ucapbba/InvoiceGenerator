@@ -11,7 +11,7 @@ It works like the spreadsheet:
 | Generate button | **Generate invoices**: one invoice per row (Smith, Smith1... for repeated surnames) |
 | Invoice Template Units / Houses | PDF with the same layout; Units add 20% VAT, Houses don't |
 | Export button | **PDF** on each invoice, or **Export all PDFs (zip)** |
-| Send Email button | **Email** on each Unit invoice with an email address: opens your email app with the address, subject and message filled in, and downloads the PDF to attach |
+| Send Email button | **Email** on each Unit invoice with an email address downloads an Outlook draft (`.eml`); open it and Outlook shows a new email with the address, subject, message and PDF attached. **All email drafts (zip)** gets them all at once |
 | Clear Invoices button | **Clear invoices**: removes generated invoices; the invoice number carries on |
 
 The app starts with made-up sample clients. Company details on the invoice are placeholders
@@ -61,7 +61,8 @@ Invoices use the placeholder details in `invoicegen/company.py`. To use real one
   "vat_reg": "123 4567 89",
   "bank": ["Bank details for direct debit payment: Bank plc,", "Sort code: ... Account Number: ...", "Account name: ..."],
   "correspondence_heading": "Please send any written correspondence including cheques to:",
-  "correspondence": "Address for correspondence"
+  "correspondence": "Address for correspondence",
+  "email_cc": "address copied in on every email draft (optional)"
 }
 ```
 

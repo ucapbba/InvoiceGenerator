@@ -9,7 +9,6 @@ Differences from the VBA, fixing known bugs:
 
 import re
 from datetime import date
-from urllib.parse import quote, urlencode
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 VAT_RATE = Decimal("0.20")
@@ -137,15 +136,6 @@ def email_body(invoice, company) -> str:
         f"Attached is your invoice {invoice['invoice_id']} for {invoice['property']}.\n\n"
         f"Regards,\n{company['name']}"
     )
-
-
-def mailto_link(invoice, company) -> str:
-    """Opens the computer's email app with the address, subject and message filled in.
-
-    Email links can't carry attachments, so the page downloads the PDF alongside.
-    """
-    query = urlencode({"subject": email_subject(invoice), "body": email_body(invoice, company)}, quote_via=quote)
-    return f"mailto:{invoice['email']}?{query}"
 
 
 def money(value) -> str:
