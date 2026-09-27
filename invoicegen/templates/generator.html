@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" action="{{ url_for('views.sheet') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {# Pressing Enter in a field uses the first button in the form, so make that Save. #}
+  <button name="action" value="save" class="visually-hidden" tabindex="-1" aria-hidden="true">Save</button>
+
+  <section class="card">
+    <h2>Generator</h2>
+    <div class="settings">
+      <label>Invoice date
+        <input type="date" name="invoice_date" value="{{ settings.invoice_date }}" required>
+      </label>
+      <label>Next invoice no.
+        <input type="number" name="next_number" min="1" step="1" value="{{ settings.next_number }}" required>
+      </label>
+      <p class="next-id">Next invoice ID: <strong>{{ next_id }}</strong></p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Clients</h2>
+    <table class="sheet clients">
+      <thead>
+        <tr><th>#</th><th>Name</th><th>Amount £</th><th>Property name</th><th>Address</th><th>Type</th><th>Email</th><th>Count</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for row in clients %}
+        <tr id="row-{{ row.id }}">
+          <td data-label="Row" class="rownum">{{ loop.index }}<input type="hidden" name="id" value="{{ row.id }}"></td>
+          <td data-label="Name"><input name="name" value="{{ row.name }}" placeholder="Title Firstname Lastname" maxlength="100"></td>
+          <td data-label="Amount £"><input name="amount" value="{{ row.amount }}" inputmode="decimal" maxlength="20" class="num"></td>
+          <td data-label="Property name"><input name="property" value="{{ row.property }}" maxlength="150"></td>
+          <td data-label="Address"><input name="address" value="{{ row.address }}" placeholder="Line 1, Town, Postcode" maxlength="300"></td>
+          <td data-label="Type">
+            <select name="type">
+              {% for t in types %}<option{% if t == row.type %} selected{% endif %}>{{ t }}</option>{% endfor %}
+            </select>
+          </td>
+          <td data-label="Email"><input name="email" value="{{ row.email }}" inputmode="email" autocapitalize="none" maxlength="150"></td>
+          <td data-label="Count" class="count">{{ row.count if row.count is not none else "" }}</td>
+          <td class="row-actions">
+            <button name="delete" value="{{ row.id }}" class="danger small" title="Delete row {{ loop.index }}"
+                    data-confirm="Delete row {{ loop.index }}{% if row.name %} ({{ row.name }}){% endif %}?">Delete</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="muted">No clients yet - press Add row.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="buttons">
+      <button name="action" value="add">+ Add row</button>
+      <button name="action" value="save">Save</button>
+      <button name="action" value="generate" class="primary">Generate invoices</button>
+    </div>
+  </section>
+</form>
+
+<section class="card" id="invoices">
+  <h2>Invoices{% if invoices %} ({{ invoices|length }}){% endif %}</h2>
+  {% if invoices %}
+  <table class="sheet invoices">
+    <thead>
+      <tr><th>Sheet</th><th>Invoice ID</th><th>Client</th><th>Type</th><th>Total</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for inv in invoices %}
+      <tr>
+        <td data-label="Sheet"><strong>{{ inv.sheet_name }}</strong></td>
+        <td data-label="Invoice ID">{{ inv.invoice_id }}</td>
+        <td data-label="Client">{{ inv.client }}</td>
+        <td data-label="Type">{{ inv.type }}</td>
+        <td data-label="Total" class="num">{{ inv.total_display }}</td>
+        <td class="row-actions">
+          <a class="button small" href="{{ url_for('views.invoice_pdf', invoice_pk=inv.id) }}" target="_blank" rel="noopener">PDF</a>
+          {% if inv.email_ok %}
+          <button type="button" class="small js-email"
+                  data-pdf="{{ url_for('views.invoice_pdf', invoice_pk=inv.id) }}"
+                  data-filename="{{ inv.sheet_name }}.pdf"
+                  data-to="{{ inv.email }}"
+                  data-subject="{{ inv.subject }}"
+                  data-body="{{ inv.body }}">Email</button>
+          {% elif inv.type == "House" %}
+          <span class="muted small">Houses aren't emailed</span>
+          {% else %}
+          <span class="muted small">No email address</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No invoices generated yet. Fill in the clients above and press <strong>Generate invoices</strong>.</p>
+  {% endif %}
+  <div class="buttons">
+    {% if invoices %}<a class="button" href="{{ url_for('views.export') }}">Export all PDFs (zip)</a>{% endif %}
+    <form method="post" action="{{ url_for('views.clear') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="danger" data-confirm="Delete all generated invoices and restart numbering at 001?">Clear invoices</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,88 @@
+:root {
+  --bg: #f4f5f7;
+  --card: #fff;
+  --text: #1d2125;
+  --muted: #626f7a;
+  --line: #d6dadf;
+  --primary: #1f6f43;
+  --danger: #b3261e;
+  --radius: 8px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1200px; margin: 0 auto; padding: 12px; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 16px; background: var(--primary); color: #fff;
+}
+.topbar h1 { font-size: 1.15rem; margin: 0; }
+.topbar .user { display: flex; align-items: center; gap: 10px; font-size: .9rem; }
+.topbar .link { background: none; border: 0; color: #fff; text-decoration: underline; padding: 0; min-height: 0; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
+.card h2 { font-size: 1.05rem; margin: 0 0 12px; }
+.login { max-width: 380px; margin: 40px auto; }
+.login form { display: grid; gap: 12px; }
+
+label { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
+input, select {
+  font: inherit; font-size: 16px; /* 16px stops iPhones zooming in on focus */
+  width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--text);
+}
+input:focus, select:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+
+button, .button {
+  font: inherit; font-size: .95rem; display: inline-flex; align-items: center; justify-content: center;
+  min-height: 40px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 6px;
+  background: #fff; color: var(--text); text-decoration: none; cursor: pointer; white-space: nowrap;
+}
+button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+button.danger { color: var(--danger); border-color: #e7b7b3; }
+.small { min-height: 34px; padding: 5px 10px; font-size: .85rem; }
+.buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.buttons form { display: contents; }
+
+.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
+.next-id { margin: 0 0 8px; }
+
+.sheet { width: 100%; border-collapse: collapse; }
+.sheet th { text-align: left; font-size: .8rem; color: var(--muted); font-weight: 600; padding: 6px; border-bottom: 1px solid var(--line); }
+.sheet td { padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.sheet .rownum, .sheet .count { color: var(--muted); text-align: center; width: 3em; }
+.clients td:nth-child(3) { width: 7em; }
+.clients td:nth-child(6) { width: 6.5em; }
+.row-actions { text-align: right; white-space: nowrap; }
+.row-actions > * + * { margin-left: 6px; }
+.num { text-align: right; }
+
+.flash { padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; background: #e8f0fe; }
+.flash.error { background: #fce8e6; color: #7a1a13; }
+.flash.success { background: #e6f4ea; color: #134a2a; }
+.muted { color: var(--muted); }
+
+.toast {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: 90vw;
+  background: #202124; color: #fff; padding: 10px 16px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; }
+
+/* Phones: each row becomes a card with labelled fields. */
+@media (max-width: 760px) {
+  main { padding: 8px; }
+  .sheet thead { display: none; }
+  .sheet, .sheet tbody, .sheet tr, .sheet td { display: block; width: 100% !important; }
+  .sheet tr { border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; margin-bottom: 10px; }
+  .sheet td { border: 0; padding: 3px 0; display: grid; grid-template-columns: 7.5em 1fr; align-items: center; gap: 8px; text-align: left; }
+  .sheet td::before { content: attr(data-label); font-size: .8rem; color: var(--muted); }
+  .sheet .rownum, .sheet .count { text-align: left; }
+  .sheet td.row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 6px; white-space: normal; }
+  .sheet td.row-actions > * + * { margin-left: 0; }
+  .sheet td.row-actions::before { content: none; }
+  .buttons > * { flex: 1 1 auto; }
+}

@@ -1,2 +1,9 @@
 # Real client data - never commit
 *.xlsm
+
+# Database, secret key and real company details
+instance/
+
+.venv/
+__pycache__/
+.pytest_cache/

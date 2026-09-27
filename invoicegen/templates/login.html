@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Log in - Invoice Generator{% endblock %}
+{% block content %}
+<section class="card login">
+  <h2>Log in</h2>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Username <input name="username" autocomplete="username" autocapitalize="none" required autofocus></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <button class="primary">Log in</button>
+  </form>
+</section>
+{% endblock %}
