@@ -14,6 +14,9 @@ It works like the spreadsheet:
 | Send Email button | **Email** on each Unit invoice with an email address downloads an Outlook draft (`.eml`); open it and Outlook shows a new email with the address, subject, message and PDF attached. **All email drafts (zip)** gets them all at once |
 | Clear Invoices button | **Clear invoices**: removes generated invoices; the invoice number carries on |
 
+The live site runs on a home Ubuntu server; see [SERVER.md](SERVER.md) for connecting,
+updating and restarting it.
+
 The app starts with made-up sample clients. Company details on the invoice are placeholders
 too; see [Company details](#company-details).
 
