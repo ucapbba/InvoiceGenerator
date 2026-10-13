@@ -11,7 +11,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
-from .generator import money, split_address
+from .generator import invoice_name, money, split_address
 
 PAGE_W, PAGE_H = A4
 MARGIN_X, MARGIN_TOP = 50, 60
@@ -74,7 +74,7 @@ def render_invoice(invoice, company) -> bytes:
     _text(c, "A", 3, f"VAT Reg. No. {company['vat_reg']}")
 
     # A5 onwards - client name and address, one comma-separated part per row.
-    _text(c, "A", 5, invoice["client"], max_right=COL["H"])
+    _text(c, "A", 5, invoice_name(invoice["client"]), max_right=COL["H"])
     for offset, line in enumerate(split_address(invoice["address"]), start=1):
         _text(c, "A", 5 + offset, line, max_right=COL["H"])
 

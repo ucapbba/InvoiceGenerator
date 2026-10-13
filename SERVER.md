@@ -30,9 +30,9 @@ in the Access policy get one), then the app's own username and password.
 | **Server** | Lenovo IdeaCentre G5, Ubuntu 22.04, hostname `bradley-IdeaCentre-G5-14IMB05` |
 | **Address** | `192.168.1.105` on the home network, user `bradley`, SSH port 22 |
 | **Host key fingerprint** | `SHA256:BWjGdy57JKqKSTHKoHhZ842lB2YCCt3dglO6Q55KsWQ` (ED25519) |
-| **App code** | `~/InvoiceGenerator` (copied from this repo; it's not a git checkout) |
-| **App's Python** | `~/InvoiceGenerator/.venv`, built from Ubuntu's Python 3.10 |
-| **Data** | `~/InvoiceGenerator/instance/`: `invoices.db` (clients, invoices, logins), `secret_key`, optional `company.json` |
+| **App code** | `~/beaaugstein/InvoiceGenerator` (copied from this repo; it's not a git checkout) |
+| **App's Python** | `~/beaaugstein/InvoiceGenerator/.venv`, built from Ubuntu's Python 3.10 |
+| **Data** | `~/beaaugstein/InvoiceGenerator/instance/`: `invoices.db` (clients, invoices, logins), `secret_key`, optional `company.json` |
 | **Tunnel** | `~/.local/bin/cloudflared`, config `~/.cloudflared/config.yml`, credentials `~/.cloudflared/5509d4fa-….json` |
 | **Services** | `~/.config/systemd/user/invoicegen.service` and `invoices-tunnel.service` |
 | **Development copy** | This repo, in the VS Code dev container (on its own Docker volume, not visible from the Mac Terminal). Its `instance/` data is **out of date**; don't run `./run.sh` here to use the app. |
@@ -121,7 +121,7 @@ Both services start at boot **without anyone logging in** (lingering is on for
 On the server:
 
 ```bash
-cd ~/InvoiceGenerator
+cd ~/beaaugstein/InvoiceGenerator
 .venv/bin/flask --app invoicegen add-user NAME       # asks for a password, 12+ characters
 .venv/bin/flask --app invoicegen set-password NAME   # change it, also unlocks a locked account
 .venv/bin/flask --app invoicegen delete-user NAME
@@ -133,7 +133,7 @@ A new director also needs their email address added to Cloudflare Access:
 
 ## Data and backups
 
-Everything that matters is in `~/InvoiceGenerator/instance/` on the server.
+Everything that matters is in `~/beaaugstein/InvoiceGenerator/instance/` on the server.
 
 **Backups are not set up yet.** The `Data` partition (`/media/bradley/Data`) is on
 the **same physical disk** as Ubuntu, so it doesn't protect against that disk
@@ -142,7 +142,7 @@ failing. Use a USB drive or cloud storage instead.
 To take a safe copy of the database while the app is running (on the server):
 
 ```bash
-/usr/bin/python3.10 -c "import sqlite3; s=sqlite3.connect('/home/bradley/InvoiceGenerator/instance/invoices.db'); d=sqlite3.connect('/home/bradley/invoices-backup.db'); s.backup(d)"
+/usr/bin/python3.10 -c "import sqlite3; s=sqlite3.connect('/home/bradley/beaaugstein/InvoiceGenerator/instance/invoices.db'); d=sqlite3.connect('/home/bradley/invoices-backup.db'); s.backup(d)"
 ```
 
 Also keep a copy of `instance/secret_key` and `instance/company.json`. Store backups

@@ -24,12 +24,19 @@ def create_app(test_config=None, instance_path=None):
     if instance_path:
         instance_path = os.path.abspath(instance_path)
     app = Flask(__name__, instance_path=instance_path, instance_relative_config=True)
+    # e.g. beaaugstein.co.uk: the login then covers that domain and all its subdomains (the home
+    # and fund apps ask /auth/check). Unset locally, so the cookie stays on this host only.
+    site_domain = os.environ.get("INVOICEGEN_SITE_DOMAIN") or None
     instance = Path(app.instance_path)
     instance.mkdir(mode=0o700, parents=True, exist_ok=True)
     app.config.update(
         DATABASE=str(instance / "invoices.db"),
         SECRET_KEY=_secret_key(instance / "secret_key"),
         COMPANY=load_company(app.instance_path),
+        SITE_DOMAIN=site_domain,
+        SESSION_COOKIE_DOMAIN=site_domain,
+        # Its own name, so an old invoices-only "session" cookie in the browser can't shadow it.
+        SESSION_COOKIE_NAME="bea_session" if site_domain else "session",
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
         # Cookies only travel over HTTPS. Set INVOICEGEN_INSECURE_COOKIES=1 to test over plain http.
@@ -45,11 +52,14 @@ def create_app(test_config=None, instance_path=None):
     auth.init_app(app)
     app.register_blueprint(views.bp)
 
+    # Browsers apply form-action to the redirect after logging in, so allow the rest of the site.
+    form_action = "'self'" + (f" https://{site_domain} https://*.{site_domain}" if site_domain else "")
+
     @app.after_request
     def security_headers(response):
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; img-src 'self' data:; object-src 'none'; "
-            "base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+            f"base-uri 'none'; form-action {form_action}; frame-ancestors 'none'"
         )
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"

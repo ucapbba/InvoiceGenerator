@@ -31,6 +31,30 @@ def surname(full_name: str) -> str:
     return parts[-1]
 
 
+def _is_initials(word: str) -> bool:
+    """C, GT, J.P. - as opposed to a written-out first name."""
+    letters = word.replace(".", "")
+    return letters.isalpha() and letters.isupper() and len(letters) <= 3
+
+
+def invoice_name(full_name: str) -> str:
+    """Name printed on the invoice: as written, but a written-out first name becomes its
+    initial (Mr Thisisan Example -> Mr T Example; Ms C Burns stays as it is)."""
+    parts = full_name.split()
+    if len(parts) > 2 and not _is_initials(parts[1]):
+        parts[1] = parts[1][0].upper()
+    return " ".join(parts)
+
+
+def greeting_name(full_name: str) -> str:
+    """Who the email is addressed to: the first name if there is one (Dear Thisisan),
+    otherwise title and surname (Dear Ms Burns)."""
+    parts = full_name.split()
+    if len(parts) > 2 and not _is_initials(parts[1]):
+        return parts[1]
+    return f"{parts[0]} {surname(full_name)}"
+
+
 def sheet_name(base: str, taken: set[str]) -> tuple[str, int]:
     """Smith, then Smith1, Smith2... Returns the name and its count (the VBA 'Count' column)."""
     name, count = base, 0
@@ -122,8 +146,8 @@ def build_invoices(rows, invoice_date: date, next_number: int, taken=()):
 
 
 def can_email(invoice) -> bool:
-    """SendEmail only drafts emails for Units with an email address."""
-    return invoice["type"] == "Unit" and bool(invoice["email"])
+    """Any invoice with an email address gets a draft (the VBA only emailed Units)."""
+    return bool(invoice["email"])
 
 
 def email_subject(invoice) -> str:
@@ -132,7 +156,7 @@ def email_subject(invoice) -> str:
 
 def email_body(invoice, company) -> str:
     return (
-        f"Dear {invoice['client']},\n\n"
+        f"Dear {greeting_name(invoice['client'])},\n\n"
         f"Attached is your invoice {invoice['invoice_id']} for {invoice['property']}.\n\n"
         f"Regards,\n{company['name']}"
     )

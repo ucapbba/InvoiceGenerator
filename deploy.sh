@@ -11,7 +11,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 SERVER="${INVOICEGEN_SERVER:-bradley@192.168.1.105}"
-REMOTE_DIR="InvoiceGenerator"
+REMOTE_DIR="beaaugstein/InvoiceGenerator"
 # Extra ssh options, e.g. INVOICEGEN_SSH_OPTS="-i ~/.ssh/other_key -o IdentitiesOnly=yes"
 SSH_OPTS="${INVOICEGEN_SSH_OPTS:-}"
 

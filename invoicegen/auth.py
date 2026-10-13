@@ -6,9 +6,10 @@ There is no sign-up page: users are created on the server with
 
 import secrets
 import time
+from urllib.parse import urlsplit
 
 import click
-from flask import Blueprint, abort, flash, g, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .db import get_db
@@ -44,6 +45,27 @@ def _load_user():
         g.user = get_db().execute("SELECT id, username FROM users WHERE id = ?", (user_id,)).fetchone()
 
 
+def _safe_next(url: str):
+    """Where to go after logging in: a page on this app, or (with SITE_DOMAIN set) on the site.
+    Anything else is ignored, so the login page can't be used to send people elsewhere."""
+    if not url or "\\" in url:
+        return None
+    parts = urlsplit(url)
+    if not parts.scheme and not parts.netloc and url.startswith("/"):
+        return url
+    domain = current_app.config.get("SITE_DOMAIN")
+    host = (parts.hostname or "").lower()
+    if domain and parts.scheme == "https" and (host == domain or host.endswith("." + domain)):
+        return url
+    return None
+
+
+@bp.get("/auth/check")
+def check():
+    """For the home and fund apps: 204 if this request's cookie is a logged-in session, else 401."""
+    return ("", 204) if g.user else ("", 401)
+
+
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -61,7 +83,7 @@ def login():
             session.clear()
             session.permanent = True
             session["user_id"] = user["id"]
-            return redirect(url_for("views.generator"))
+            return redirect(_safe_next(request.form.get("next", "")) or url_for("views.generator"))
 
         if user and not locked:
             failed = user["failed_logins"] + 1
@@ -72,7 +94,7 @@ def login():
             db.commit()
         flash(f"Incorrect username or password. After {MAX_FAILED_LOGINS} failed attempts the account "
               f"is locked for {LOCK_SECONDS // 60} minutes.", "error")
-    return render_template("login.html")
+    return render_template("login.html", next=_safe_next(request.values.get("next", "")) or "")
 
 
 @bp.post("/logout")

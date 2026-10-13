@@ -77,8 +77,6 @@
           {% if inv.email_ok %}
           <a class="button small" href="{{ url_for('views.invoice_draft', invoice_pk=inv.id) }}"
              title="Download an Outlook draft with the PDF attached">Email</a>
-          {% elif inv.type == "House" %}
-          <span class="muted small">Houses aren't emailed</span>
           {% else %}
           <span class="muted small">No email address</span>
           {% endif %}

@@ -3,7 +3,9 @@ import io
 import zipfile
 from email import policy
 
-from conftest import csrf_from, log_in, sheet_form
+import pytest
+
+from conftest import PASSWORD, csrf_from, log_in, sheet_form
 from invoicegen.auth import MAX_FAILED_LOGINS
 from invoicegen.db import get_db
 
@@ -79,8 +81,7 @@ def test_generate_export_and_clear(logged_in):
     assert "Generated 6 invoices" in page
     assert "10-2026-001" in page and "10-2026-006" in page
     assert "<strong>Smith1</strong>" in page
-    assert page.count(">Email</a>") == 4  # Units with an email address
-    assert "Houses aren't emailed" in page
+    assert page.count(">Email</a>") == 5  # everyone with an email address, Houses included
 
     # Generating again without clearing is refused, as in the spreadsheet.
     logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
@@ -141,14 +142,54 @@ def test_email_is_an_outlook_draft_with_the_pdf_attached(logged_in):
     assert attachment.get_content().startswith(b"%PDF")
 
 
-def test_houses_and_rows_without_email_get_no_draft(logged_in):
+def test_rows_without_email_get_no_draft_but_houses_do(logged_in):
     logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
     assert logged_in.get("/invoices/4.eml").status_code == 302  # Mr D Smith, no email address
-    assert logged_in.get("/invoices/6.eml").status_code == 302  # House
+    assert logged_in.get("/invoices/6.eml").status_code == 200  # House with an email address
 
 
 def test_all_drafts_zip(logged_in):
     logged_in.post("/sheet", data={**sheet_form(logged_in), "action": "generate"})
     archive = zipfile.ZipFile(io.BytesIO(logged_in.get("/drafts.zip").data))
     assert sorted(archive.namelist()) == sorted(
-        ["Sample_10-2026-001.eml", "Example_10-2026-002.eml", "Smith_10-2026-003.eml", "Placeholder_10-2026-005.eml"])
+        ["Sample_10-2026-001.eml", "Example_10-2026-002.eml", "Smith_10-2026-003.eml", "Placeholder_10-2026-005.eml",
+         "Tenant_10-2026-006.eml"])
+
+
+def test_auth_check_reports_whether_logged_in(client):
+    assert client.get("/auth/check").status_code == 401
+    log_in(client)
+    assert client.get("/auth/check").status_code == 204
+
+
+def _log_in_with_next(client, next_url):
+    token = csrf_from(client.get("/login"))
+    return client.post("/login", data={"csrf_token": token, "username": "director", "password": PASSWORD,
+                                       "next": next_url})
+
+
+@pytest.mark.parametrize("next_url", ["https://beaaugstein.co.uk/docs", "https://fund.beaaugstein.co.uk/", "/export.zip"])
+def test_login_returns_to_pages_on_the_site(app, client, next_url):
+    app.config["SITE_DOMAIN"] = "beaaugstein.co.uk"
+    assert _log_in_with_next(client, next_url).location == next_url
+
+
+@pytest.mark.parametrize("next_url", ["https://evil.example/", "//evil.example/", "https://beaaugstein.co.uk.evil.example/",
+                                      "http://beaaugstein.co.uk/", "/\\evil.example", "javascript:alert(1)"])
+def test_login_never_redirects_off_the_site(app, client, next_url):
+    app.config["SITE_DOMAIN"] = "beaaugstein.co.uk"
+    assert _log_in_with_next(client, next_url).location == "/"
+
+
+def test_without_site_domain_only_local_pages_are_allowed(client):
+    assert _log_in_with_next(client, "https://beaaugstein.co.uk/").location == "/"
+
+
+def test_site_domain_makes_the_login_cover_the_whole_site(monkeypatch, tmp_path):
+    monkeypatch.setenv("INVOICEGEN_SITE_DOMAIN", "beaaugstein.co.uk")
+    from invoicegen import create_app
+    app = create_app({"TESTING": True}, instance_path=str(tmp_path))
+    response = app.test_client().get("/login")
+    assert response.headers["Set-Cookie"].startswith("bea_session=")
+    assert "Domain=beaaugstein.co.uk" in response.headers["Set-Cookie"]
+    assert "form-action 'self' https://beaaugstein.co.uk https://*.beaaugstein.co.uk" in response.headers["Content-Security-Policy"]

@@ -21,6 +21,25 @@ def test_surname_rejects_single_word():
         gen.surname("Burns")
 
 
+@pytest.mark.parametrize("name, on_invoice, greeting", [
+    ("Mr Thisisan Example", "Mr T Example", "Thisisan"),
+    ("Ms C Burns", "Ms C Burns", "Ms Burns"),
+    ("Mr GT Walker", "Mr GT Walker", "Mr Walker"),
+    ("Dr J.P. Jones", "Dr J.P. Jones", "Dr Jones"),
+    ("Mr John Paul Smith", "Mr J Paul Smith", "John"),
+    ("Mr R Barrio de Mendoza Zevallos", "Mr R Barrio de Mendoza Zevallos", "Mr Zevallos"),
+    ("Mr Example", "Mr Example", "Mr Example"),
+])
+def test_invoice_and_greeting_names(name, on_invoice, greeting):
+    assert gen.invoice_name(name) == on_invoice
+    assert gen.greeting_name(name) == greeting
+
+
+def test_email_greets_by_first_name():
+    invoice = {"client": "Mr Thisisan Example", "invoice_id": "10-2026-001", "property": "Unit 1"}
+    assert gen.email_body(invoice, {"name": "Us"}).startswith("Dear Thisisan,\n")
+
+
 def test_duplicate_surnames_get_counts():
     invoices, _ = gen.build_invoices([row("Mr A Smith"), row("Mrs B Smith"), row("Dr C Smith")], date(2026, 10, 1), 1)
     assert [(i["sheet_name"], i["count"]) for i in invoices] == [("Smith", 0), ("Smith1", 1), ("Smith2", 2)]
@@ -62,9 +81,9 @@ def test_address_parts_are_trimmed():
     assert gen.split_address("19 Bury Road, Ramsey, , PE26 1NE") == ["19 Bury Road", "Ramsey", "PE26 1NE"]
 
 
-def test_only_units_with_email_are_emailed():
+def test_invoices_with_email_are_emailed():
     assert gen.can_email({"type": "Unit", "email": "a@example.com"})
-    assert not gen.can_email({"type": "House", "email": "a@example.com"})
+    assert gen.can_email({"type": "House", "email": "a@example.com"})
     assert not gen.can_email({"type": "Unit", "email": ""})
 
 

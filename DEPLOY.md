@@ -28,7 +28,7 @@ You need to be on the home network, on the Mac.
 5. **Runs the tests on the server.** If they fail, it stops *without restarting*,
    so the previous version keeps running.
 6. **Restarts the app** and checks it's answering.
-7. **Records the deployed version** in `~/InvoiceGenerator/DEPLOYED.txt` on the server:
+7. **Records the deployed version** in `~/beaaugstein/InvoiceGenerator/DEPLOYED.txt` on the server:
    the date, and the git commit (noting "plus uncommitted changes" if there were any).
 
 Deploying takes about 30 seconds. The site is only down for the couple of seconds of the restart.
